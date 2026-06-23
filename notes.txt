@@ -1,0 +1,9 @@
+
+
+
+current src/utils.py using glob is too much computational overhead??
+
+
+
+all patches are stored as coordiantes in .h5 files
+    all nested as /cluster/projects/kumargroup/CPTAC_data/trident_output/CPTAC-*/20x_256px_0px_overlap

@@ -1,0 +1,32 @@
+# ==============================================================================
+# Script:           config.yaml
+# Purpose:          Pipeline configurations
+# Author:           Sophia Mengjia Li
+# Affiliation:      CCG Lab, Princess Margaret Cancer Center, UHN, UofT
+# Date:             06/23/2026
+# ==============================================================================
+
+patch_size: 256
+
+paths:
+  wsi_dir: /cluster/projects/kumargroup/CPTAC_data/Histology_by_CT
+  trident_dir: /cluster/projects/kumargroup/CPTAC_data/trident_output
+  hovernet_outputs: data/hovernet_outputs
+  attention_outputs: data/attention_outputs
+  merged_outputs: data/merged
+
+models:
+  hovernet:
+    model: /cluster/projects/kumargroup/sean/hovernet
+    weights: /cluster/projects/kumargroup/sean/hovernet/pannuke.tar
+    mode: original       # 'fast' or 'original'
+    nr_types: 6 # Default CoNSeP types
+
+results:
+  correlation_results: results/correlation_results.txt
+
+inference:
+  batch_size: 32
+  num_workers: 8
+
+# [END]
