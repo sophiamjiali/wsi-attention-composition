@@ -37,7 +37,7 @@ def main():
     dst_dir.mkdir(parents = True, exist_ok = True)
     
     # Point the input patch directory to the specified project
-    src_dir = config.paths.inputs.patch_dir / args.project
+    src_dir = Path(config.paths.inputs.patch_dir) / Path(args.project)
     
     # Initialize a patch manifest to map training information
     manifest = build_patch_manifest(src_dir, args.project)
