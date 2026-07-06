@@ -12,9 +12,14 @@ import torch
 import numpy as np
 
 from pathlib import Path
+from src.patch_dataset import PatchDataset
 from models.hovernet.net_desc import HoVerNet
 
+from torch.utils.data import DataLoader
+
 logger = logging.getLogger(__name__)
+
+model = None
 
 
 def load_hovernet(weights_path: Path,
@@ -36,7 +41,7 @@ def load_hovernet(weights_path: Path,
         weights_only = False
     )
 
-    # Extract teh state dictionary and sanitize them (remove 'module' prefix)
+    # Extract the state dictionary and sanitize them (remove 'module' prefix)
     state_dict = checkpoint.get('desc', checkpoint)
     state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
 
@@ -46,5 +51,46 @@ def load_hovernet(weights_path: Path,
     model.eval()
 
     return model
+
+
+
+def apply_hovernet(group):
+    global model
+    
+    patch_paths = [Path(p) for p in group['patch_path']]
+    dataset = PatchDataset(patch_paths)
+    loader = DataLoader(dataset, 32, num_workers = 0, pin_memory=False)
+
+    results = []
+    with torch.no_grad():
+        for images, patch_names in loader:
+            images = images.cuda()
+            preds = model(images)
+
+            np_out = preds['np'].cpu().numpy()
+            hv_out = preds['hv'].cpu().numpy()
+            tp_out = preds['tp'].cpu().numpy()
+
+            for i in range(len(patch_names)):
+                results.append({
+                    'patch_name': patch_names[i],
+                    'np': np_out[i],
+                    'hv': hv_out[i],
+                    'tp': tp_out[i]
+                })
+
+    return results
+
+
+def init_worker(config, device):
+    global model
+
+    # Load the HoverNet with the provided weights
+    model = load_hovernet(
+        weights_path = config.models.hovernet.weights,
+        mode         = config.models.hovernet.mode,
+        nr_types     = config.models.hovernet.nr_types,
+        device       = device
+    )
 
 # [END]

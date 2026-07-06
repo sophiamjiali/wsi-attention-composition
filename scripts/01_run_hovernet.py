@@ -1,26 +1,29 @@
 # ==============================================================================
 # Script:           01_run_hovernet.py
-# Purpose:          Generate patch compositions using HoverNet
+# Purpose:          Generate cell-type predictions using HoVer-net
 # Author:           Sophia Mengjia Li
 # Affiliation:      CCG Lab, Princess Margaret Cancer Center, UHN, UofT
 # Date:             06/23/2026
 # ==============================================================================
 
+import h5py
 import os
 import logging
 import torch
 
 import argparse as ap
-import pandas as pd
+import torch.multiprocessing as mp
 
 from pathlib import Path
 from torch.utils.data import DataLoader
 from datetime import datetime
 
-from src.utils import load_config
-from src.hovernet_wrapper import load_hovernet
-from src.patch_dataset import PatchDataset
-from src.composition import apply_composition_extraction
+from functools import partial
+from concurrent.futures import ProcessPoolExecutor
+from tqdm import tqdm
+
+from src.utils import load_config, build_patch_manifest
+from src.hovernet_wrapper import apply_hovernet, init_worker
 
 logger = logging.getLogger(__name__)
 
@@ -30,86 +33,57 @@ def main():
     log_header(config_path = args.config)
     config = load_config(args.config)
 
-    # Initialize directories for HoverNet outputs
-    os.makedirs(config.paths.outputs.hovernet_outputs, exist_ok = True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load the HoverNet with the provided weights
-    model = load_hovernet(
-        weights_path = config.models.hovernet.weights,
-        mode         = config.models.hovernet.mode,
-        nr_types     = config.models.hovernet.nr_types,
-        device       = device
-    )
+    # Initialize output directories
+    dst_dir = config.paths.outputs.inference_dir / args.project
+    dst_dir.mkdir(parents = True, exist_ok = True)
+    
+    # Point the input patch directory to the specified project
+    src_dir = config.paths.inputs.patch_dir / args.project
+    
+    # Initialize a patch manifest to map training information
+    manifest = build_patch_manifest(src_dir, args.project)
+    sample_groups = [group for _, group in manifest.groupby('sample_id')]
 
-    # Process per project (e.g. TCGA-BRCA, TCGA-SKCM, etc.)
-    for project_dir in sorted(Path(config.paths.inputs.patch_dir).iterdir()):
-        if not project_dir.is_dir(): continue
-
-        # Process per sample, nested within each project
-        for sample_dir in sorted(Path(project_dir).iterdir()):
-            if not sample_dir.is_dir(): continue
-
-            # Fetch all patches associated with the current sample
-            patch_paths = sorted(sample_dir.glob("patch_*.png"))
-            if not patch_paths: continue
-
-            # Initialize its output directory for HoVerNet composition
-            out_dir = (Path(config.paths.outputs.hovernet_outputs) / 
-                       project_dir.name / sample_dir.name)
-            out_path = out_dir / f"{sample_dir.name}.parquet"
-            out_path.parent.mkdir(parents = True, exist_ok = True)
+    n_workers = config.models.hovernet.n_workers
+    with ProcessPoolExecutor(max_workers = n_workers, 
+                             initializer = init_worker,
+                             initargs    = (config, device)) as pool:
+        
+        # Map the worker function to the sample groups
+        for sample_id, sample_results in tqdm(
+            zip(manifest['sample_id'].unique(), 
+                pool.map(apply_hovernet, sample_groups, chunksize = 1)), 
+                total = len(sample_groups)):
             
-            dataset = PatchDataset(patch_paths)
-            loader = DataLoader(
-                dataset, 
-                batch_size  = config.models.hovernet.batch_size,
-                num_workers = config.models.hovernet.n_workers,
-                shuffle     = False,
-                pin_memory  = True
-            )
+            out_path = dst_dir / f"{sample_id}.h5"
+            
+            # Save all patches together grouped by sample into HDF5
+            with h5py.File(out_path, 'w') as h5_file:
+                for pred in sample_results:
 
-            # Generate compositions for each batch of patches
-            inference_list = []
-            for batch in loader:
-
-                # Generate cell-type predictions using the HoVer-net
-                images      = batch['image'].to(device, non_blocking = True)
-                patch_names = batch['patch_name']
-
-                with torch.no_grad(): 
-                    preds = model(images)
-
-                    # Unpack the batch into the format expected for extraction
-                    for i in range(len(patch_names)):
-                        inference_list.append({
-                            'sample_id' : sample_dir.name,
-                            'patch_name': patch_names[i],
-                            'np'        : preds['np'][i].detach().cpu().numpy(),
-                            'hv'        : preds['hv'][i].detach().cpu().numpy(),
-                            'tp'        : preds['tp'][i].detach().cpu().numpy()
-                        })
-
-            # Extract compositions from cell-type predictions
-            compositions = apply_composition_extraction(
-                predictions = inference_list, 
-                nr_types    = config.models.hovernet.nr_types,
-                n_workers   = config.models.hovernet.n_workers
-            )
-
-            compositions.to_parquet(out_path, index = False)
-            logger.info(f"Finished {project_dir.name}/{sample_dir.name}: "
-                        f"{len(patch_paths)} patches processed")
+                    # Create a group per patch
+                    grp = h5_file.create_group(pred['patch_name'])
+                    grp.create_dataset('np',data=pred['np'], compression='gzip')
+                    grp.create_dataset('hv',data=pred['hv'], compression='gzip')
+                    grp.create_dataset('tp',data=pred['tp'], compression='gzip')
                 
         log_footer(config)
         
     return
+
+
+
+
+
 
 # =====| Helpers |==============================================================
 
 def parse_args():
     parser = ap.ArgumentParser(description = "Process raw patches and masks.")
     parser.add_argument("--config", type = str, default = "config.yaml")
+    parser.add_argument("--project", type = str)
     
     return parser.parse_args()
 
@@ -136,6 +110,7 @@ def log_footer(cfg):
     logger.info("=" * 60)
 
 if __name__ == "__main__":
+    mp.set_start_method('spawn', force = True)
     main()
 
 # [END]

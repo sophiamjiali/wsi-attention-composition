@@ -11,12 +11,14 @@ patch_size: 256
 paths:
   inputs:
     patch_dir: /cluster/projects/kumargroup/sean/Methylation_Generation/m24_patches
-    embedding_dir: c # UNI embeddings for input into the proteomics model
+    embedding_dir: /cluster/projects/kumargroup/sean/Methylation_Generation/m24_embeddings # UNI embeddings for input into the proteomics model
 
   outputs:
-    hovernet_outputs: data/hovernet_outputs
-    attention_outputs: data/attention_outputs
-    merged_outputs: data/merged
+    metadata: data/metadata
+    inference_dir: data/hovernet_outputs
+    composition_dir:
+    attention_dir: data/attention_outputs
+    merged_dir: data/merged
 
 models:
   hovernet: # Model path added directly in SLURM submission script
@@ -24,8 +26,7 @@ models:
     weights: /cluster/projects/kumargroup/sophia/hovernet_fast_pannuke_type_tf2pytorch.tar
     mode: fast       # 'fast' or 'original'
     nr_types: 6 # Default CoNSeP types
-    batch_size: 12
-    n_workers: 2
+    n_workers: 12
 
   protein_model: /cluster/projects/kumargroup/sean/results/05-inference/all_data_combined/05_train_all_data_combined_20260617_J6829500/cov0
 
