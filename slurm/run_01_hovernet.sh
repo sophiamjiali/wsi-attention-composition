@@ -30,7 +30,8 @@ echo "Start time:         $(date)"
 echo "=========================================="
 
 srun python scripts/01_run_hovernet.py \
-    --config config.yaml
+    --config config.yaml \
+    --project TCGA-BLCA
 
 echo "=========================================="
 echo "End time: $(date)"

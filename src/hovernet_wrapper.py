@@ -9,8 +9,6 @@
 import logging
 import torch
 
-import numpy as np
-
 from pathlib import Path
 from src.patch_dataset import PatchDataset
 from models.hovernet.net_desc import HoVerNet
