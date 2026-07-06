@@ -9,18 +9,25 @@
 patch_size: 256
 
 paths:
-  wsi_dir: /cluster/projects/kumargroup/CPTAC_data/Histology_by_CT
-  trident_dir: /cluster/projects/kumargroup/CPTAC_data/trident_output
-  hovernet_outputs: data/hovernet_outputs
-  attention_outputs: data/attention_outputs
-  merged_outputs: data/merged
+  inputs:
+    patch_dir: /cluster/projects/kumargroup/sean/Methylation_Generation/m24_patches
+    embedding_dir: c # UNI embeddings for input into the proteomics model
+
+  outputs:
+    hovernet_outputs: data/hovernet_outputs
+    attention_outputs: data/attention_outputs
+    merged_outputs: data/merged
 
 models:
-  hovernet:
-    model: /cluster/projects/kumargroup/sean/hovernet
-    weights: /cluster/projects/kumargroup/sean/hovernet/pannuke.tar
-    mode: original       # 'fast' or 'original'
+  hovernet: # Model path added directly in SLURM submission script
+    model: /cluster/projects/kumargroup/sophia/hover_net
+    weights: /cluster/projects/kumargroup/sophia/hovernet_fast_pannuke_type_tf2pytorch.tar
+    mode: fast       # 'fast' or 'original'
     nr_types: 6 # Default CoNSeP types
+    batch_size: 12
+    n_workers: 2
+
+  protein_model: /cluster/projects/kumargroup/sean/results/05-inference/all_data_combined/05_train_all_data_combined_20260617_J6829500/cov0
 
 results:
   correlation_results: results/correlation_results.txt

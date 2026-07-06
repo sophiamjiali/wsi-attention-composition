@@ -1,58 +1,37 @@
 # ==============================================================================
 # Script:           patch_dataset.py
-# Purpose:          Patch Streaming from TRIDENT coordinates for HoverNet 
+# Purpose:          Patch dataset for loading PNGs (patches) from disk
 # Author:           Sophia Mengjia Li
 # Affiliation:      CCG Lab, Princess Margaret Cancer Center, UHN, UofT
-# Date:             06/23/2026
-#
-# Notes:            Streams patches from WSIs using TRIDENT .h5 coordinate files
-#                   and runs HoverNet inference without saving patches to disk.
+# Date:             07/06/2026
 # ==============================================================================
 
-import h5py
-import openslide
-
-import numpy as np
-
 from torch.utils.data import Dataset
+from torchvision import transforms
+from PIL import Image
 from pathlib import Path
 
 
-class PatchStreamDataset(Dataset):
-    """
-    Defines a WSI as a dataset consisting of all patch coordinates extracted
-    by TRIDENT
-    """
+class PatchDataset(Dataset):
+    """PyTorch dataset for loading pre-extracted PNG patches from disk."""
 
-    def __init__(self,
-                 wsi_path:   Path, # Path to the sample's WSI
-                 h5_path:    Path, # Path to TRIDENT patch coordinates
-                 patch_size: int):
-        
-        # Extract WSI, coordinates, and patch_size
-        self.wsi = openslide.OpenSlide(wsi_path)
+    def __init__(self, patch_paths: list[Path]):
+        self.patch_paths = patch_paths
+        self.transform = transforms.ToTensor()
 
-        with h5py.File(h5_path, 'r') as f: 
-            self.coords = f["coords"][:]
-
-        self.patch_size = patch_size
-
-    
     def __len__(self):
-        return len(self.coords)
+        return len(self.patch_paths)
     
-
     def __getitem__(self, idx):
 
-        # Extract the patch using the coordinates
-        x, y = self.coords[idx]
-        patch = self.wsi.read_region(
-            location = (int(x), int(y)), 
-            level    = 0, 
-            size     = (self.patch_size, self.patch_size)
-        ).convert('RGB')
+        # Load the image and force RGB, converting to tensor
+        path = self.patch_paths[idx]
+        image = Image.open(path).convert('RGB')
+        image = self.transform(image)
 
-        return np.array(patch, dtype = np.uint8), int(x), int(y)
-
-        
+        return {
+            'image'     : image,
+            'patch_name': path.stem
+        }
+    
 # [END]
