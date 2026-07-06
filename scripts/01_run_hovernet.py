@@ -33,7 +33,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize output directories
-    dst_dir = config.paths.outputs.inference_dir / args.project
+    dst_dir = Path(config.paths.outputs.inference_dir) / Path(args.project)
     dst_dir.mkdir(parents = True, exist_ok = True)
     
     # Point the input patch directory to the specified project
