@@ -59,10 +59,14 @@ def apply_hovernet(group):
     dataset = PatchDataset(patch_paths)
     loader = DataLoader(dataset, 32, num_workers = 0, pin_memory=False)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     results = []
     with torch.no_grad():
-        for images, patch_names in loader:
-            images = images.cuda()
+        for batch in loader:
+            images      = batch['image'].to(device)
+            patch_names = batch['patch_name']
+            
             preds = model(images)
 
             np_out = preds['np'].cpu().numpy()

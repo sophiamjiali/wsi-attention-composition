@@ -3,7 +3,7 @@
 #SBATCH --error=/cluster/home/t144807uhn/logs/wsi-attention-composition/hovernet/%j.err
 #SBATCH --account=kumargroup_gpu
 #SBATCH -p gpu
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:v100:1
 #SBATCH --time=12:30:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
