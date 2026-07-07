@@ -14,11 +14,11 @@ paths:
     embedding_dir: /cluster/projects/kumargroup/sean/Methylation_Generation/m24_embeddings # UNI embeddings for input into the proteomics model
 
   outputs:
-    metadata: data/metadata
-    inference_dir: data/hovernet_outputs
-    composition_dir:
-    attention_dir: data/attention_outputs
-    merged_dir: data/merged
+    metadata: /cluster/projects/kumargroup/sophia/wsi-attention-composition/metadata
+    inference_dir: /cluster/projects/kumargroup/sophia/wsi-attention-composition/predictions
+    composition_dir: /cluster/projects/kumargroup/sophia/wsi-attention-composition/compositions
+    attention_dir: /cluster/projects/kumargroup/sophia/wsi-attention-composition/attention
+    merged_dir: /cluster/projects/kumargroup/sophia/wsi-attention-composition/merged
 
 models:
   hovernet: # Model path added directly in SLURM submission script
