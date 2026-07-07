@@ -17,8 +17,6 @@ from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 
-model = None
-
 
 def load_hovernet(weights_path: Path,
                   mode        : str,
@@ -51,20 +49,30 @@ def load_hovernet(weights_path: Path,
     return model
 
 
-
-def apply_hovernet(group):
-    global model
+def apply_hovernet(model,
+                   patch_paths: list[Path], 
+                   batch_size: int,
+                   n_workers: int,
+                   device: torch.device) -> list:
     
-    patch_paths = [Path(p) for p in group['patch_path']]
+    # Initialize the dataset and loader for GPU parallelization
     dataset = PatchDataset(patch_paths)
-    loader = DataLoader(dataset, 32, num_workers = 0, pin_memory=False)
+    loader = DataLoader(
+        dataset     = dataset,
+        batch_size  = batch_size,
+        num_workers = n_workers,
+        pin_memory  = True
+    )
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    n_batches = len(loader)
+    logger.info(f"- | - Initialized Dataset and DataLoader with "
+                f"{n_batches} batches")
 
-    results = []
-    with torch.no_grad():
-        for batch in loader:
-            images      = batch['image'].to(device)
+    predictions = []
+    with torch.inference_mode():
+        for i, batch in enumerate(loader):
+
+            images      = batch['image'].to(device, non_blocking = True)
             patch_names = batch['patch_name']
             
             preds = model(images)
@@ -74,25 +82,18 @@ def apply_hovernet(group):
             tp_out = preds['tp'].cpu().numpy()
 
             for i in range(len(patch_names)):
-                results.append({
+                predictions.append({
                     'patch_name': patch_names[i],
                     'np': np_out[i],
                     'hv': hv_out[i],
                     'tp': tp_out[i]
                 })
 
-    return results
+            logger.info(f"- |     - Processed batch {i} / {n_batches} "
+                        f"containing {len(patch_names)} total patches")
 
+    logger.info("- | - Successfully generated predictions for all batches")
 
-def init_worker(config, device):
-    global model
-
-    # Load the HoverNet with the provided weights
-    model = load_hovernet(
-        weights_path = config.models.hovernet.weights,
-        mode         = config.models.hovernet.mode,
-        nr_types     = config.models.hovernet.nr_types,
-        device       = device
-    )
+    return predictions
 
 # [END]

@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:v100:1
 #SBATCH --time=12:30:00
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 
 # Make the project-specific logs directory

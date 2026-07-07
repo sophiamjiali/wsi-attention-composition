@@ -6,12 +6,14 @@
 # Date:             06/23/2026
 # ==============================================================================
 
+import logging
+import h5py
 import yaml
-
-import pandas as pd
 
 from box import Box
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 WSI_EXTS = [".svs", ".tif", ".tiff", ".ndpi", ".mrxs"]
 
@@ -21,20 +23,21 @@ def load_config(path: Path) -> Box:
     return Box(yaml.safe_load(open(path)), frozen_box = True)
 
 
-def build_patch_manifest(src_dir: Path, project: str):
-    """Initialize a patch manifest with one row per patch."""
+def save_sample_predictions(predictions: list,
+                            out_path: Path) -> None:
+    """Saves sample predictions as an HDF5."""
 
-    manifest = []
+    # Automatically writes to the file, doesn't need to be explicitly saved
+    with h5py.File(out_path, 'w') as h5_file:
+        for pred in predictions:
 
-    for sample_dir in src_dir.iterdir():
-        for patch in sample_dir.glob("*.png"):
-            manifest.append({
-                'project': project,
-                'sample_id': sample_dir.name,
-                'patch_name': patch.name,
-                'patch_path': patch
-            })
+            # Initialize each patch as an individual group
+            grp = h5_file.create_group(pred['patch_name'])
+            grp.create_dataset('np',data = pred['np'], compression = 'gzip')
+            grp.create_dataset('hv',data = pred['hv'], compression = 'gzip')
+            grp.create_dataset('tp',data = pred['tp'], compression = 'gzip')
 
-    return pd.DataFrame(manifest)
+    logger.info(f"- | - Saved predictions to {out_path.name}")
+    return None
 
 # [END]

@@ -6,7 +6,7 @@
 # Date:             06/23/2026
 # ==============================================================================
 
-import h5py
+
 import logging
 import torch
 
@@ -16,11 +16,8 @@ import torch.multiprocessing as mp
 from pathlib import Path
 from datetime import datetime
 
-from concurrent.futures import ProcessPoolExecutor
-from tqdm import tqdm
-
-from src.utils import load_config, build_patch_manifest
-from src.hovernet_wrapper import apply_hovernet, init_worker
+from src.utils import load_config, save_sample_predictions
+from src.hovernet_wrapper import load_hovernet, apply_hovernet
 
 logger = logging.getLogger(__name__)
 
@@ -38,41 +35,43 @@ def main():
     
     # Point the input patch directory to the specified project
     src_dir = Path(config.paths.inputs.patch_dir) / Path(args.project)
-    
-    # Initialize a patch manifest to map training information
-    manifest = build_patch_manifest(src_dir, args.project)
-    sample_groups = [group for _, group in manifest.groupby('sample_id')]
 
-    n_workers = config.models.hovernet.n_workers
-    with ProcessPoolExecutor(max_workers = n_workers, 
-                             initializer = init_worker,
-                             initargs    = (config, device)) as pool:
-        
-        # Map the worker function to the sample groups
-        for sample_id, sample_results in tqdm(
-            zip(manifest['sample_id'].unique(), 
-                pool.map(apply_hovernet, sample_groups, chunksize = 1)), 
-                total = len(sample_groups)):
-            
-            out_path = dst_dir / f"{sample_id}.h5"
-            
-            # Save all patches together grouped by sample into HDF5
-            with h5py.File(out_path, 'w') as h5_file:
-                for pred in sample_results:
+    # Initialize the model with pretrained weights
+    model = load_hovernet(
+        weights_path = config.models.hovernet.weights,
+        mode         = config.models.hovernet.mode,
+        nr_types     = config.models.hovernet.nr_types,
+        device       = device
+    )
+    logger.info("Successfully loaded the HoVer-net model")
 
-                    # Create a group per patch
-                    grp = h5_file.create_group(pred['patch_name'])
-                    grp.create_dataset('np',data=pred['np'], compression='gzip')
-                    grp.create_dataset('hv',data=pred['hv'], compression='gzip')
-                    grp.create_dataset('tp',data=pred['tp'], compression='gzip')
-                
-        log_footer(config)
+    # Process each sample sequentially; GPU will parallelize the tiles
+    sample_dirs = [p for p in src_dir.iterdir() if p.is_dir()]
+    logger.info(f"Beginning to process {len(sample_dirs)} samples "
+                f"from {args.project}")
+
+    for sample_dir in sample_dirs:
+        logger.info("- | Beginning to process sample {sample_dir.name}")
+        patch_paths = [Path(p) for p in sample_dir.glob("*.png")]
+        logger.info(f"- | - Detected {len(patch_paths)} patches")
+
+        # Generate predictions for all patches of the sample
+        predictions = apply_hovernet(
+            model       = model,
+            patch_paths = patch_paths,
+            batch_size  = config.models.hovernet.batch_size,
+            n_workers   = config.models.hovernet.n_workers,
+            device      = device
+        )
+
+        # Save all sample patches together into an HDF5
+        out_path = dst_dir / f"{sample_dir.name}_predictions.h5"
+        save_sample_predictions(predictions, out_path)
+
+    logger.info("Completed generating predictions for all samples")
+    log_footer(config)
         
     return
-
-
-
-
 
 
 # =====| Helpers |==============================================================
