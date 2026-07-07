@@ -26,8 +26,8 @@ models:
     weights: /cluster/projects/kumargroup/sophia/hovernet_fast_pannuke_type_tf2pytorch.tar
     mode: fast       # 'fast' or 'original'
     nr_types: 6      # Default CoNSeP types
-    n_workers: 8
-    batch_size: 16
+    n_workers: 4
+    batch_size: 8
 
   protein_model: /cluster/projects/kumargroup/sean/results/05-inference/all_data_combined/05_train_all_data_combined_20260617_J6829500/cov0
 
