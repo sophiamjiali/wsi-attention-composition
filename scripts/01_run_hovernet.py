@@ -19,6 +19,12 @@ from datetime import datetime
 from src.utils import load_config, save_sample_predictions
 from src.hovernet_wrapper import load_hovernet, apply_hovernet
 
+logging.basicConfig(
+    level  = logging.INFO,
+    format = "%(asctime)s | %(levelname)s | %(message)s",
+    force  = True
+)
+
 logger = logging.getLogger(__name__)
 
 

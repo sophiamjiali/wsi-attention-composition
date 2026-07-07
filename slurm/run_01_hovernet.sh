@@ -24,13 +24,13 @@ export PYTHONPATH="/cluster/projects/kumargroup/sophia/hover_net:$PYTHONPATH"
 
 echo "=========================================="
 echo "Mini Sweep Job ID:  $SLURM_JOB_ID"
-echo "Job Name:           $1"
+echo "Job Name:           $SLURM_JOB_NAME"
 echo "Node:               $SLURMD_NODENAME"
 echo "GPU:                $CUDA_VISIBLE_DEVICES"
 echo "Start time:         $(date)"
 echo "=========================================="
 
-srun python scripts/01_run_hovernet.py \
+srun python -u scripts/01_run_hovernet.py \
     --config config.yaml \
     --project TCGA-BLCA
 
