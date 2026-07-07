@@ -6,14 +6,9 @@
 # Date:             06/23/2026
 # ==============================================================================
 
-
-print("Before CUDA check", flush=True)
-
 import logging
 import torch
-
-print("Torch imported", flush=True)
-print(torch.cuda.is_available(), flush=True)
+import sys
 
 import argparse as ap
 
@@ -26,7 +21,8 @@ from src.hovernet_wrapper import load_hovernet, apply_hovernet
 logging.basicConfig(
     level  = logging.INFO,
     format = "%(asctime)s | %(levelname)s | %(message)s",
-    force  = True
+    force  = True,
+    stream = sys.stdout
 )
 
 logger = logging.getLogger(__name__)
@@ -61,7 +57,7 @@ def main():
                 f"from {args.project}")
 
     for sample_dir in sample_dirs:
-        logger.info("- | Beginning to process sample {sample_dir.name}")
+        logger.info(f"- | Beginning to process sample {sample_dir.name}")
         patch_paths = [Path(p) for p in sample_dir.glob("*.png")]
         logger.info(f"- | - Detected {len(patch_paths)} patches")
 
@@ -116,8 +112,6 @@ def log_footer(cfg):
     logger.info("=" * 60)
 
 if __name__ == "__main__":
-    print("ENTERED MAIN", flush=True)
-    logger.info("Entered main")
     main()
 
 # [END]

@@ -10,6 +10,10 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 
+echo "=========================================="
+nvidia-smi
+echo "=========================================="
+
 # Make the project-specific logs directory
 mkdir -p /cluster/home/t144807uhn/logs/wsi-attention-composition/hovernet
 
