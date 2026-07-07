@@ -58,10 +58,11 @@ def apply_hovernet(model,
     # Initialize the dataset and loader for GPU parallelization
     dataset = PatchDataset(patch_paths)
     loader = DataLoader(
-        dataset     = dataset,
-        batch_size  = batch_size,
-        num_workers = n_workers,
-        pin_memory  = True
+        dataset            = dataset,
+        batch_size         = batch_size,
+        num_workers        = n_workers,
+        pin_memory         = True,
+        persistent_workers = True
     )
 
     n_batches = len(loader)
