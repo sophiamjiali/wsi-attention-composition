@@ -5,7 +5,7 @@
 #SBATCH --account=kumargroup_gpu
 #SBATCH -p gpu
 #SBATCH --gres=gpu:v100:1
-#SBATCH --time=12:30:00
+#SBATCH --time=6:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G

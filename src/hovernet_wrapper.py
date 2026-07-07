@@ -71,7 +71,7 @@ def apply_hovernet(model,
 
     predictions = []
     with torch.inference_mode():
-        for idx, batch in enumerate(loader):
+        for batch in loader:
 
             images      = batch['image'].to(device, non_blocking = True)
             patch_names = batch['patch_name']
@@ -90,8 +90,8 @@ def apply_hovernet(model,
                     'tp': tp_out[i]
                 })
 
-            logger.info(f"- |     - Processed batch {idx} / {n_batches} "
-                        f"containing {len(patch_names)} total patches")
+            # logger.info(f"- |     - Processed batch {idx} / {n_batches} "
+            #             f"containing {len(patch_names)} total patches")
 
     logger.info("- | - Successfully generated predictions for all batches")
 
