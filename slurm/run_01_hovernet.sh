@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --job-name=01_run_hovernet
 #SBATCH --output=/cluster/home/t144807uhn/logs/wsi-attention-composition/hovernet/%j.out
 #SBATCH --error=/cluster/home/t144807uhn/logs/wsi-attention-composition/hovernet/%j.err
 #SBATCH --account=kumargroup_gpu
