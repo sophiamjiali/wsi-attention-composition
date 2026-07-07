@@ -7,11 +7,15 @@
 # ==============================================================================
 
 
+print("Before CUDA check", flush=True)
+
 import logging
 import torch
 
+print("Torch imported", flush=True)
+print(torch.cuda.is_available(), flush=True)
+
 import argparse as ap
-import torch.multiprocessing as mp
 
 from pathlib import Path
 from datetime import datetime
@@ -112,7 +116,8 @@ def log_footer(cfg):
     logger.info("=" * 60)
 
 if __name__ == "__main__":
-    mp.set_start_method('spawn', force = True)
+    print("ENTERED MAIN", flush=True)
+    logger.info("Entered main")
     main()
 
 # [END]
