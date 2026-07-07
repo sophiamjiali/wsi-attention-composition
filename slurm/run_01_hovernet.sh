@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --job-name=01_run_hovernet
 #SBATCH --output=/cluster/home/t144807uhn/logs/wsi-attention-composition/hovernet/%j.out
 #SBATCH --error=/cluster/home/t144807uhn/logs/wsi-attention-composition/hovernet/%j.err
 #SBATCH --account=kumargroup_gpu
@@ -32,7 +31,7 @@ echo "=========================================="
 
 srun python -u scripts/01_run_hovernet.py \
     --config config.yaml \
-    --project TCGA-BLCA
+    --project $1
 
 echo "=========================================="
 echo "End time: $(date)"
