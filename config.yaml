@@ -35,7 +35,7 @@ results:
   correlation_results: results/correlation_results.txt
 
 composition:
-  n_workers: 8
+  n_workers: 4
 
 inference:
   batch_size: 32

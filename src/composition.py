@@ -77,7 +77,7 @@ def extract_composition(predictions: dict,
         # Apply the provided watershed algorithm
         _, inst_info_dict = hovernet_postproc(
             patch_dict, 
-            nr_types         = NR_TYPES,
+            nr_types         = nr_types,
             return_centroids = False
         )
         
