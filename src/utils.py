@@ -7,7 +7,6 @@
 # ==============================================================================
 
 import logging
-import h5py
 import yaml
 import sys
 
@@ -43,25 +42,5 @@ def setup_logger(name: str | None = None) -> logging.Logger:
     logger.setLevel(logging.INFO)
 
     return logger
-
-
-def save_sample_predictions(predictions: list,
-                            out_path: Path) -> None:
-    """Saves sample predictions as an HDF5."""
-
-    logger = setup_logger(__name__)
-
-    # Automatically writes to the file, doesn't need to be explicitly saved
-    with h5py.File(out_path, 'w') as h5_file:
-        for pred in predictions:
-
-            # Initialize each patch as an individual group
-            grp = h5_file.create_group(pred['patch_name'])
-            grp.create_dataset('np',data = pred['np'], compression = 'gzip')
-            grp.create_dataset('hv',data = pred['hv'], compression = 'gzip')
-            grp.create_dataset('tp',data = pred['tp'], compression = 'gzip')
-
-    logger.info(f"- | - Saved predictions to {out_path.name}")
-    return None
 
 # [END]

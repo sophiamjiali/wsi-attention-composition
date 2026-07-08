@@ -6,16 +6,16 @@
 # Date:             06/23/2026
 # ==============================================================================
 
-import logging
 import torch
 
 from pathlib import Path
-from src.patch_dataset import PatchDataset
 from models.hovernet.net_desc import HoVerNet
-
 from torch.utils.data import DataLoader
 
-logger = logging.getLogger(__name__)
+from src.patch_dataset import PatchDataset
+from src.utils import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def load_hovernet(weights_path: Path,

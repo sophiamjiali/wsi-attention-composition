@@ -13,8 +13,9 @@ import argparse as ap
 from pathlib import Path
 from datetime import datetime
 
-from src.utils import load_config, save_sample_predictions, setup_logger
+from src.utils import load_config, setup_logger
 from src.hovernet_wrapper import load_hovernet, apply_hovernet
+from src.io import save_sample_predictions
 
 logger = setup_logger(__name__)
 
@@ -62,8 +63,8 @@ def main():
         )
 
         # Save all sample patches together into an HDF5
-        out_path = dst_dir / f"{sample_dir.name}_predictions.h5"
-        save_sample_predictions(predictions, out_path)
+        dst_path = dst_dir / f"{sample_dir.name}_predictions.h5"
+        save_sample_predictions(predictions, dst_path)
 
     logger.info("Completed generating predictions for all samples")
     log_footer(config)
