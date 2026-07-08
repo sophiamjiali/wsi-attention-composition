@@ -45,9 +45,10 @@ def load_sample_predictions(src_path: Path) -> dict[str, dict]:
         for patch_name in f.keys():
             assert isinstance(f[patch_name], h5py.Group)
             predictions[patch_name] = {
-                'np': f[patch_name]['np'][:],
-                'hv': f[patch_name]['hv'][:],
-                'tp': f[patch_name]['tp'][:]
+                'patch_name': patch_name,
+                'np'        : f[patch_name]['np'][:],
+                'hv'        : f[patch_name]['hv'][:],
+                'tp'        : f[patch_name]['tp'][:]
             }
     return predictions
 
