@@ -12,7 +12,7 @@ import pandas as pd
 
 from pathlib import Path
 
-from utils import setup_logger
+from src.utils import setup_logger
 
 logger = setup_logger(__name__)
 
