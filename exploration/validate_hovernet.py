@@ -4,6 +4,9 @@ Usage (interactive session):
     %run validate_hovernet_h5.py --h5 path/to/sample.h5
 or:
     python validate_hovernet_h5.py --h5 path/to/sample.h5 [--nr-types 6] [--expected-count N]
+
+Example: 
+    python -c 'from validate_hovernet import validate; validate("/cluster/projects/kumargroup/sophia/wsi-attention-composition/predictions/TCGA-BLCA/TCGA-FD-A5BS-01A-02-TSB.21A9159B-7DD1-4F26-951E-C99C004C1956_predictions.h5", nr_types = 6)'
 """
 import argparse
 import h5py
