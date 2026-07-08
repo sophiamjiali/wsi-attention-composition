@@ -6,26 +6,17 @@
 # Date:             06/23/2026
 # ==============================================================================
 
-import logging
 import torch
-import sys
 
 import argparse as ap
 
 from pathlib import Path
 from datetime import datetime
 
-from src.utils import load_config, save_sample_predictions
+from src.utils import load_config, save_sample_predictions, setup_logger
 from src.hovernet_wrapper import load_hovernet, apply_hovernet
 
-logging.basicConfig(
-    level  = logging.INFO,
-    format = "%(asctime)s | %(levelname)s | %(message)s",
-    force  = True,
-    stream = sys.stdout
-)
-
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 
 def main():
