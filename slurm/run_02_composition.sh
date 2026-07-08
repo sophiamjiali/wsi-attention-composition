@@ -4,7 +4,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --mem=28G
 
 # Make the project-specific logs directory
 mkdir -p /cluster/home/t144807uhn/logs/wsi-attention-composition/composition
