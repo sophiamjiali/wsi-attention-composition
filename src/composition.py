@@ -68,34 +68,15 @@ def extract_composition(predictions: dict,
                    if name != 'background'}
 
     try:
-        patch_dict = {
-            "np": np.transpose(predictions["np"], (1, 2, 0)),
-            "hv": np.transpose(predictions["hv"], (1, 2, 0)),
-            "tp": np.transpose(predictions["tp"], (1, 2, 0)),
-        }
-
-        logger.info("Patch dict items:")
-        for k, v in patch_dict.items():
-            logger.info(
-                "%s: type=%s shape=%s dtype=%s",
-                k,
-                type(v),
-                getattr(v, "shape", None),
-                getattr(v, "dtype", None),
-            )
-
-        logger.info("Predictions items:g")
-        for k, v in predictions.items():
-            logger.info(
-                "%s: %s %s",
-                k,
-                type(v),
-                getattr(v, "shape", None),
-            )
+        pred_map = np.concatenate([
+            np.transpose(predictions["tp"], (1, 2, 0)),
+            np.transpose(predictions["np"], (1, 2, 0)),
+            np.transpose(predictions["hv"], (1, 2, 0)),
+        ], axis = -1,)
 
         # Apply the provided watershed algorithm
         _, inst_info_dict = hovernet_postproc(
-            patch_dict, 
+            pred_map, 
             nr_types         = nr_types,
             return_centroids = False
         )
@@ -115,7 +96,8 @@ def extract_composition(predictions: dict,
         return {**base_result, **counts}
     
     except Exception: 
-        logger.exception(f"- | - [ERROR] Failed to extracted patch compositions")
+        logger.exception(f"- | - [ERROR] Failed to extracted "
+                         f"patch compositions")
         return {**base_result, **empty_comp, 'total_cells': 0}
 
 # [END]
