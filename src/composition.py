@@ -95,8 +95,8 @@ def extract_composition(predictions: dict,
         logger.info("- | - Successfully extracted patch compositions")
         return {**base_result, **counts}
     
-    except Exception: 
-        logger.error("- | - [ERROR] Failed to extracted patch compositions")
+    except Exception as e: 
+        logger.error(f"- | - [ERROR] Failed to extracted patch compositions: {e}")
         return {**base_result, **empty_comp, 'total_cells': 0}
 
 # [END]
