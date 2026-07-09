@@ -52,6 +52,8 @@ def extract_sample_compositions(pool: ProcessPoolExecutor,
     records = list(pool.map(extract_composition, tasks, chunksize = chunksize))
     compositions = pd.DataFrame.from_records(records)
 
+    logger.info("- | - Successfully extracted sample patch compositions")
+
     # Save all sample patch compositions together into a parquet
     save_sample_compositions(compositions, dst_path)
 
@@ -91,8 +93,6 @@ def extract_composition(predictions: dict,
             if type_name in counts: counts[type_name] += 1
 
         counts["total_cells"] = sum(counts.values())
-
-        logger.info("- | - Successfully extracted patch compositions")
         return {**base_result, **counts}
     
     except Exception: 
